@@ -1,42 +1,29 @@
-# sv
+# Time tools
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+타이머, 스톱워치, 뽀모도로 기능을 한 번에 제공하는 SvelteKit 기반 타이머 웹 앱입니다.  
+다크 모드 지원, 상단 네비게이션, 부드러운 페이지 전환 애니메이션을 제공합니다.
 
-## Creating a project
+## 기능
 
-If you're seeing this, you've probably already done this step. Congrats!
+- 타이머
+  - 시:분:초 설정
+  - 시작 / 일시정지 / 초기화
+- 스톱워치
+  - 경과 시간 측정
+  - 랩 기록 기능
+  - 시작 / 일시정지 / 초기화
+- 뽀모도로
+  - 집중 시간 / 휴식 시간 설정
+  - 세션 진행 상태 표시
+- 공통 UX
+  - 상단 네비바에서 타이머 / 스톱워치 / 뽀모도로 이동
+  - 왼쪽 상단 로고를 클릭하면 홈으로 이동
+  - 다크 / 라이트 모드 토글
+  - 페이지 전환 시 슬라이드 애니메이션
 
-```sh
-# create a new project
-npx sv create my-app
-```
+## 기술 스택
 
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-npx sv create --template minimal --no-types --add prettier eslint --install npm ./
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- Framework: SvelteKit (Svelte 5, runes)
+- Language: JavaScript
+- Build Tool: Vite
+- 스타일: CSS (`app.css` 커스텀 스타일)
