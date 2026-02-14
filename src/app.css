@@ -2,7 +2,15 @@
 html, body {
   margin: 0;
   padding: 0;
-  overflow: hidden; /* 너가 원한 B 유지 */
+}
+
+/* 스크롤바 숨김(브라우저별) */
+body {
+  -ms-overflow-style: none; /* IE/레거시 Edge 전용(프로프라이어터리) */ 
+}
+
+body::-webkit-scrollbar {
+  display: none; /* WebKit 계열에서 스크롤바 숨김 */
 }
 
 /* 테마 토큰: html 클래스 기준 */

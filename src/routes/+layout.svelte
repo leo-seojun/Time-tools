@@ -150,19 +150,19 @@
 
 
   .theme-toggle {
-    position: fixed;
+    position: absolute;
     top: 20px;
     right: 20px;
     z-index: 1000;
   }
 
   .theme-toggle button {
-    padding: 8px 16px;
+    padding: 0.5rem 0.9rem;
     border: 1px solid var(--border);
     border-radius: 20px;
     background: transparent;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 0.7rem;
     color: var(--link);
     transition: background 0.2s ease, color 0.2s ease;
   }
@@ -176,4 +176,73 @@
     margin: 0 auto;
     padding: 80px 20px 20px;
   }
+
+  /* 기존 스타일 유지 + 추가 */
+
+/* 모바일 우선: 네비 바 간소화 */
+@media (max-width: 768px) {
+  .main-nav {
+    padding: 0.75rem 1rem;
+    height: auto;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .nav-links {
+    margin: 0;
+    order: 3; /* 로고 다음으로 이동 */
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .logo {
+    font-size: 1.25rem;
+    padding: 0.5rem 0.75rem;
+    margin: 0 auto;
+    margin-left: 0;
+    order: 1;
+  }
+
+  .logo img {
+    height: 32px;
+  }
+
+  .spacer {
+    display: none; /* 모바일에서 불필요 */
+  }
+
+  .page-content {
+    padding: 60px 16px 16px; /* 네비 높이 고려 */
+  }
+
+  .theme-toggle {
+    top: 16px;
+    right: 16px;
+  }
+}
+
+/* 태블릿: 가로 배치 유지 but 간격 축소 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .main-nav {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .nav-links {
+    gap: 1rem;
+  }
+
+  .logo {
+    font-size: 1.4rem;
+  }
+}
+
+/* 데스크톱: 기존 유지 but max-width 추가 */
+@media (min-width: 1025px) {
+  .page-content {
+    max-width: 1000px;
+  }
+}
+
 </style>

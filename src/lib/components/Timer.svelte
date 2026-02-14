@@ -15,6 +15,20 @@
   let minutes = $state(1);
   let seconds = $state(0);
 
+  // 모바일 여부 감지
+  let isMobile = $state(false);
+
+  function checkMobile() {
+    isMobile = window.innerWidth <= 768;
+  }
+
+  // 리사이즈 감지
+  $effect(() => {
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  });
+
   function start() {
     if (running) return;
     running = true;
@@ -82,7 +96,6 @@
     };
   });
 
-  // $derived formatted = formatRemaining();
   let formatted = $derived(formatRemaining())
 
   function handleKeydown(event) {
@@ -91,7 +104,7 @@
     }
   }
 
-   function playAlarm() {
+  function playAlarm() {
     if (!audioContext) {
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
@@ -100,15 +113,15 @@
     const notes = [
       { freq: 523.25, duration: 0.2 },  
       { freq: 659.25, duration: 0.2 },  
-      { freq: 783.99, duration: 0.4 },   
+      { freq: 783.99, duration: 0.4 },  
       { freq: 0, duration: 0.3},
       { freq: 523.25, duration: 0.2 },  
       { freq: 659.25, duration: 0.2 },  
-      { freq: 783.99, duration: 0.4 },   
+      { freq: 783.99, duration: 0.4 },  
       { freq: 0, duration: 0.3},
       { freq: 523.25, duration: 0.2 },  
       { freq: 659.25, duration: 0.2 },  
-      { freq: 783.99, duration: 0.4 },   
+      { freq: 783.99, duration: 0.4 },  
       { freq: 0, duration: 0.3},
     ];
 
@@ -143,7 +156,6 @@
 <svelte:head>
   <title>타이머 · Time tools</title>
 </svelte:head>
-
 
 <div class="container">
   <!-- 시계도 버튼처럼 중앙 배치 -->
@@ -182,17 +194,19 @@
     <button onclick={setFromInputs}>설정</button>
   </div>
 
-  <!-- 빠른 설정 버튼들 -->
-  <div class="quick-buttons">
-    <button onclick={() => setDuration(10)}>10초</button>
-    <button onclick={() => setDuration(30)}>30초</button>
-    <button onclick={() => setDuration(60)}>1분</button>
-    <button onclick={() => setDuration(180)}>3분</button>
-    <button onclick={() => setDuration(300)}>5분</button>
-    <button onclick={() => setDuration(600)}>10분</button>
-    <button onclick={() => setDuration(1800)}>30분</button>
-    <button onclick={() => setDuration(3600)}>1시간</button>
-  </div>
+  <!-- 모바일에서는 숨김, 데스크톱에서만 보이는 빠른 설정 버튼들 -->
+  {#if !isMobile}
+    <div class="quick-buttons">
+      <button onclick={() => setDuration(10)}>10초</button>
+      <button onclick={() => setDuration(30)}>30초</button>
+      <button onclick={() => setDuration(60)}>1분</button>
+      <button onclick={() => setDuration(180)}>3분</button>
+      <button onclick={() => setDuration(300)}>5분</button>
+      <button onclick={() => setDuration(600)}>10분</button>
+      <button onclick={() => setDuration(1800)}>30분</button>
+      <button onclick={() => setDuration(3600)}>1시간</button>
+    </div>
+  {/if}
 
   <!-- 제어 버튼 -->
   <div class="main-buttons">
@@ -220,7 +234,7 @@
 
     /* 강한 그림자 대신 거의 없는 수준으로만 */
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
-    transition: background 0.15s ease, border-color 0.2s ease, color 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   }
 
   .main-display {
@@ -232,7 +246,8 @@
 
   .main-display h2 {
     margin: 0;
-    font-size: 56px;
+    /* 모바일: 36px, 데스크톱: 56px */
+    font-size: clamp(36px, 8vw, 56px);
     line-height: 1.05;
     font-family: system-ui, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     letter-spacing: 0.02em;
@@ -277,6 +292,7 @@
   /* 버튼: 미니멀(과한 입체감/변형 제거) */
   button {
     padding: 10px 14px;
+    margin-left: 10px;
     border-radius: 10px;
     border: 1px solid transparent;
 
@@ -305,7 +321,7 @@
     cursor: not-allowed;
   }
 
-  /* Quick 버튼은 “강조색” 대신 중립(심플) */
+  /* Quick 버튼은 "강조색" 대신 중립(심플) */
   .quick-buttons button {
     background: transparent;
     color: var(--text);
@@ -315,5 +331,36 @@
   .quick-buttons button:hover:not(:disabled) {
     background: rgba(148, 163, 184, 0.12); /* light/dark 모두 무난 */
     border-color: var(--control-border);
+  }
+
+  /* 모바일 최적화 */
+  @media (max-width: 768px) {
+    .container {
+      margin: 12px auto;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    .time-inputs {
+      gap: 4px;
+      font-size: 14px;
+    }
+
+    .time-inputs input {
+      width: 52px;
+      padding: 8px 6px;
+      font-size: 16px; /* 모바일 입력 필드 최적화 */
+    }
+
+    .main-buttons {
+      gap: 6px;
+    }
+
+    button {
+      padding: 6px 10px;
+      font-size: 14px; /* 모바일 터치 영역 최적화 */
+      min-height: 40px;
+      min-width: 60px;
+    }
   }
 </style>

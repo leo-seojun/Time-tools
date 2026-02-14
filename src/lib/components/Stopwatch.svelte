@@ -9,6 +9,20 @@
   // 랩타임 목록 (문자열 배열)
   let laps = $state([]);
 
+  // 모바일 여부 감지
+  let isMobile = $state(false);
+
+  function checkMobile() {
+    isMobile = window.innerWidth <= 768;
+  }
+
+  // 리사이즈 감지
+  $effect(() => {
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  });
+
   function start() {
     if (running) return;
     running = true;
@@ -75,35 +89,41 @@
     <h2>{formatted}</h2>
   </div>
 
-  <!-- 제어 버튼 + 랩타임 버튼 -->
+  <!-- 모바일: 1열 + 1열 / 데스크톱: 1열 -->
   <div class="main-buttons">
-    <button onclick={start} disabled={running}>시작</button>
-    <button onclick={stop} disabled={!running}>정지</button>
-    <button onclick={reset}>초기화</button>
-    <button onclick={addLap} disabled={!running && elapsedMs === 0}>랩 기록</button>
-  </div>
-
-  <!-- 랩타임 리스트 -->
-  <!-- 기존 코드에서 .laps 부분만 수정 -->
-
-<!-- 랩타임 리스트 (스크롤 가능) -->
-{#if laps.length > 0}
-  <div class="laps">
-    <h3>랩타임</h3>
-    <div class="laps-scroll">
-      <ul>
-        {#each laps as lap, index}
-          <li>
-            <span class="lap-index">랩 {index + 1}</span>
-            <span class="lap-time">{lap.time}</span>
-          </li>
-        {/each}
-      </ul>
+    <!-- 기본 제어 버튼들 (모바일에서 가로 1열) -->
+    <div class="control-buttons">
+      <button onclick={start} disabled={running}>시작</button>
+      <button onclick={stop} disabled={!running}>정지</button>
+      <button onclick={reset}>초기화</button>
     </div>
+    
+    <!-- 랩 기록 버튼 (모바일에서 별도 줄, 전체 너비) -->
+    {#if isMobile}
+      <button class="lap-button" onclick={addLap} disabled={!running && elapsedMs === 0}>
+        랩 기록
+      </button>
+    {:else}
+      <button onclick={addLap} disabled={!running && elapsedMs === 0}>랩 기록</button>
+    {/if}
   </div>
-{/if}
 
-
+  <!-- 랩타임 리스트 (스크롤 가능) -->
+  {#if laps.length > 0}
+    <div class="laps">
+      <h3>랩타임</h3>
+      <div class="laps-scroll">
+        <ul>
+          {#each laps as lap, index}
+            <li>
+              <span class="lap-index">랩 {index + 1}</span>
+              <span class="lap-time">{lap.time}</span>
+            </li>
+          {/each}
+        </ul>
+      </div>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -115,7 +135,7 @@
 
     max-width: 760px;
     margin: 24px auto;
-    padding: 60px 0;
+    padding: clamp(40px, 8vh, 60px) 0;
 
     background: var(--surface);
     color: var(--text);
@@ -136,7 +156,7 @@
 
   .main-display h2 {
     margin: 0;
-    font-size: 56px;
+    font-size: clamp(36px, 8vw, 56px);
     line-height: 1.05;
     font-weight: 700;
     letter-spacing: 0.01em;
@@ -147,23 +167,29 @@
 
   .main-buttons {
     display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 440px;
+    align-items: center;
+  }
+
+  .control-buttons {
+    display: flex;
     gap: 8px;
     flex-wrap: wrap;
     justify-content: center;
+    width: 100%;
   }
 
   button {
     padding: 10px 14px;
     border-radius: 10px;
     border: 1px solid transparent;
-
     background: var(--primary);
     color: var(--btn-text);
-
     cursor: pointer;
     font-weight: 600;
-    font-size: 14px;
-
     transition: background 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
   }
 
@@ -202,7 +228,7 @@
   }
 
   .laps-scroll {
-    max-height: 220px;
+    max-height: clamp(160px, 30vh, 220px);
     overflow-y: auto;
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -219,10 +245,8 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-
     padding: 10px 10px;
     border-radius: 8px;
-
     color: var(--text);
   }
 
@@ -247,7 +271,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* scrollbar (심플하게) */
+  /* scrollbar */
   .laps-scroll {
     scrollbar-width: thin;
     scrollbar-color: rgba(148, 163, 184, 0.7) transparent;
@@ -268,5 +292,67 @@
 
   .laps-scroll::-webkit-scrollbar-thumb:hover {
     background: rgba(148, 163, 184, 0.8);
+  }
+
+  /* 데스크톱: 모든 버튼 가로 배치 */
+  @media (min-width: 769px) {
+    .main-buttons {
+      flex-direction: row;
+      gap: 8px;
+    }
+
+    .control-buttons {
+      flex: 1;
+    }
+
+    button {
+      padding: 6px 10px;
+      font-size: 14px;
+      min-height: 44px;
+      min-width: 60px;
+    }
+  }
+
+  /* 모바일: 제어 버튼 가로1열 + 랩버튼 전체너비 */
+  @media (max-width: 768px) {
+    .container {
+      margin: 12px auto;
+      padding: clamp(24px, 6vh, 40px) 16px;
+      gap: 12px;
+    }
+
+    button {
+      font-size: 14px;
+      /* min-width: 60px; */
+      min-height: 40px;
+    }
+
+    .control-buttons button {
+      flex: 1 1 100px; /* 가로 1열 배치 */
+      max-width: 60px;
+      padding: 8px 6px;
+    }
+
+    .lap-button {
+      width: 100%;
+      max-width: 70px;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .laps {
+      max-width: 100%;
+      padding: 10px;
+    }
+
+    .laps h3 {
+      font-size: 13px;
+    }
+
+    .lap-index, .lap-time {
+      font-size: 12px;
+    }
   }
 </style>

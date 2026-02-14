@@ -298,8 +298,8 @@
 
   <!-- 재생/일시정지/리셋 -->
   <div class="controls">
-    <button onclick={startTimer} disabled={running}>재생</button>
-    <button onclick={stopTimer} disabled={!running}>일시정지</button>
+    <button onclick={startTimer} disabled={running}>시작</button>
+    <button onclick={stopTimer} disabled={!running}>정지</button>
     <button onclick={resetTimer}>초기화</button>
   </div>
 </div>
@@ -484,6 +484,78 @@
     background: rgba(148, 163, 184, 0.10);
     color: var(--text);
   }
+
+  /* 모바일 반응형 */
+@media (max-width: 480px) {
+  .container {
+    margin: 0 auto; /* 모바일에서 위로 당기는 -24px 완화 */
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .main-display h2 {
+    font-size: 44px;
+  }
+
+  /* 1) 설정: 3개 인풋을 가로로 */
+  .settings {
+    width: 100%;
+    flex-wrap: nowrap;       /* 한 줄 유지 */
+    gap: 8px;
+    justify-content: space-between;
+  }
+
+  .setting-group {
+    flex: 1 1 0;             /* 3등분 */
+    min-width: 0;            /* 넘침 방지 */
+    padding: 8px 8px;
+  }
+
+  .setting-group input {
+    width: 80%;             /* 그룹 폭에 맞춤 */
+    padding: 9px 8px;
+  }
+
+  .setting-group label {
+    font-size: 11px;
+    line-height: 1.2;
+    white-space: nowrap;     /* 라벨이 길면 잘릴 수 있어요 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 2) 모드 선택 버튼: 3개 가로로 */
+  .main-buttons {
+    width: 100%;
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .main-buttons button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 10px 8px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* 3) 재생/일시정지/초기화: 3개 가로로 */
+  .controls {
+    width: 100%;
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .controls button {
+    flex: 1 1 0;
+    max-width: 60px;
+    min-height: 40px;
+    padding: 6px 10px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+}
+
 </style>
 
 
