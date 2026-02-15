@@ -154,7 +154,7 @@
 </script>
 
 <svelte:head>
-  <title>타이머 · Time tools</title>
+  <title>타이머 · Time Tools</title>
 </svelte:head>
 
 <div class="container">

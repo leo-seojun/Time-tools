@@ -80,7 +80,7 @@
 </script>
 
 <svelte:head>
-  <title>스톱워치 · Time tools</title>
+  <title>스톱워치 · Time Tools</title>
 </svelte:head>
 
 <div class="container">

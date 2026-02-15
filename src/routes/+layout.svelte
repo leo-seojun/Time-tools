@@ -68,6 +68,13 @@
     <button type="button" on:click={toggleTheme}>
       {darkMode ? '라이트 모드' : '다크 모드'}
     </button>
+    <!-- <button class="about">About</button> -->
+  </div>
+
+  <div class="about">
+    <a href="/about">
+      <button>About</button>
+    </a>
   </div>
 
   <!-- {#key currentPath} -->
@@ -169,6 +176,26 @@
 
   .theme-toggle button:hover {
     background: var(--link-hover-bg);
+  }
+
+  .about {
+    display: flex;
+    justify-content: right;
+  }
+
+  .about button {
+    padding: .5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: transparent;
+    cursor: pointer;
+    font-size: .7rem;
+    color: var(--text);
+    transition: background .2s ease, color 0.2s ease;
+  }
+
+  .about button:hover {
+    background: var(--border);
   }
 
   .page-content {

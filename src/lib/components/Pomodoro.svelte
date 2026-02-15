@@ -274,7 +274,7 @@
 </script>
 
 <svelte:head>
-  <title>뽀모도로 · Time tools</title>
+  <title>뽀모도로 · Time Tools</title>
 </svelte:head>
 
 <div class="container">
@@ -299,7 +299,7 @@
       {autoAdvance ? '수동으로 세트 넘기기' : '자동으로 세트 넘기기'}
     </button>
   </div>
-
+  <!-- svelte-ignore a11y_label_has_associated_control -->
   <div class="settings">
     <div class="setting-group">
       <label>집중 시간 (분)</label>
@@ -583,20 +583,6 @@
 
   .main-buttons button:hover:not(:disabled) {
     background: rgba(148, 163, 184, 0.10);
-  }
-
-  /* 맨 아래 "소리" 버튼(컨테이너 직계 자식)도 아웃라인 + 작게 */
-  .container > button {
-    background: transparent;
-    color: var(--muted);
-    border-color: var(--border);
-    padding: 9px 12px;
-    font-weight: 700;
-  }
-
-  .container > button:hover:not(:disabled) {
-    background: rgba(148, 163, 184, 0.10);
-    color: var(--text);
   }
 
   /* 모바일 반응형 */

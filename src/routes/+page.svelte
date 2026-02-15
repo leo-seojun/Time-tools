@@ -4,14 +4,14 @@
   import '../app.css'
 
   const items = [
-    { href: '/timer', title: '타이머', desc: '시간을 설정하고 알람으로 종료를 알려요.' },
+    { href: '/timer', title: '타이머', desc: '시간을 설정하고 카운트다운 해요.' },
     { href: '/stopwatch', title: '스톱워치', desc: '랩 기록과 함께 경과 시간을 측정해요.' },
-    { href: '/pomodoro', title: '뽀모도로', desc: '집중/휴식 사이클로 효율적으로 집중해요.' }
+    { href: '/pomodoro', title: '뽀모도로', desc: '뽀모도로 기법으로 집중력을 높여요.' }
   ];
 </script>
 
 <svelte:head>
-  <title>Home · Time tools</title>
+  <title>Home · Time Tools</title>
 </svelte:head>
 
 <div class="home">
