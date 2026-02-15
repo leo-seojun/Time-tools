@@ -4,9 +4,9 @@
   import '../app.css'
 
   const items = [
-    { href: '/timer', title: '타이머', desc: '카운트다운을 설정하고 알람으로 종료를 알려요.' },
+    { href: '/timer', title: '타이머', desc: '시간을 설정하고 알람으로 종료를 알려요.' },
     { href: '/stopwatch', title: '스톱워치', desc: '랩 기록과 함께 경과 시간을 측정해요.' },
-    { href: '/pomodoro', title: '뽀모도로', desc: '집중/휴식 사이클을 설정해서 자동으로 관리해요.' }
+    { href: '/pomodoro', title: '뽀모도로', desc: '집중/휴식 사이클로 효율적으로 집중해요.' }
   ];
 </script>
 
