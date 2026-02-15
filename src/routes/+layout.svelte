@@ -189,7 +189,7 @@
     border-radius: 20px;
     background: transparent;
     cursor: pointer;
-    font-size: .7rem;
+    font-size: 1rem;
     color: var(--text);
     transition: background .2s ease, color 0.2s ease;
   }

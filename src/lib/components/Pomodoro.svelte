@@ -580,7 +580,7 @@
 
   @media (max-width: 480px) {
     .container {
-      margin: 0 auto;
+      margin: -36px auto 10px;
       padding: 14px;
       gap: 12px;
     }
