@@ -112,8 +112,8 @@
 
 .card:hover {
   background: var(--hover);
-  transform: translateY(-2px); /* 부드러운 호버 [web:42] */
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+  /* box-shadow: 0 4px 12px rgba(0,0,0,0.1); */
 }
 
 .card-title {

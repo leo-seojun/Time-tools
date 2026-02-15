@@ -21,6 +21,7 @@ html.light {
   --surface: #f8fafc;
   --text: #0f172a;
   --muted: #64748b;
+  --hover: rgba(15, 23, 42, 0.04);
   --border: #e2e8f0;
   --nav-bg: #f8f9fa;
   --nav-border: #dee2e6;
@@ -50,6 +51,7 @@ html.dark {
   --surface: #17172a;
   --text: #e5e7eb;
   --muted: #9ca3af;
+  --hover: rgba(229, 231, 235, 0.06);
   --border: #2b2b45;
   --nav-bg: #1e1e2e;
   --nav-border: #33334d;

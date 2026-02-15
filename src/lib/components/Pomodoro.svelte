@@ -23,6 +23,8 @@
   // 현재 세트 번호 (1부터 시작, focus 모드일 때만 +1)
   let currentSet = $derived(completedFocusCount + (mode === 'focus' ? 1 : 0));
 
+  let autoAdvance = $state(true);
+
   // ms → HH:MM:SS 형식
   function formatTime(ms) {
     const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -110,13 +112,13 @@
   // 모드 전환 로직
   function handlePhaseEnd() {
     stopTimer();
-
     playAlarm();
 
+    // ★ 모드 전환 로직은 무조건 실행 (자동넘김 여부와 상관없이)
     if (mode === 'focus') {
       completedFocusCount = completedFocusCount + 1;
+      console.log('집중 완료! 세트:', completedFocusCount);
 
-      // 4세트마다 긴 휴식
       if (completedFocusCount % 4 === 0) {
         mode = 'long-break';
         setRemainingFromMinutes(longBreakMinutes);
@@ -125,12 +127,16 @@
         setRemainingFromMinutes(shortBreakMinutes);
       }
     } else if (mode === 'short-break' || mode === 'long-break') {
-      // 휴식 끝나면 다시 집중
       mode = 'focus';
       setRemainingFromMinutes(focusMinutes);
     }
 
-    // 여기서는 자동 시작 X (사용자가 다시 재생/시작을 눌러야 함)
+    // ★ 자동 넘김 ON일 때만 다음 타이머 자동 시작
+    if (autoAdvance) {
+      startTimer();
+    } else {
+      running = false; // 명시적 정지 상태
+    }
   }
 
   function startFocus() {
@@ -243,6 +249,15 @@
     <h2>{formattedTime()}</h2>
   </div>
 
+  <div class="auto-advance-toggle">
+    <button 
+      class="toggle-btn {autoAdvance ? 'manual-mode' : 'auto-mode'}"
+      onclick={() => autoAdvance = !autoAdvance}
+    >
+      {autoAdvance ? '수동으로 세트 넘기기' : '자동으로 세트 넘기기'}
+    </button>
+</div>
+
   <!-- 설정 영역 (사용자 정의 집중/휴식 시간) -->
   <div class="settings">
     <div class="setting-group">
@@ -252,7 +267,7 @@
         type="number"
         min="1"
         max="180"
-        bindvalue={focusMinutes}
+        bind:value={focusMinutes}
         placeholder="25"
         onchange={(e) => updateFocusMinutes(e.target.value)}
       />
@@ -264,7 +279,7 @@
         type="number"
         min="1"
         max="60"
-        bindvalue={shortBreakMinutes}
+        bind:value={shortBreakMinutes}
         placeholder="5"
         onchange={(e) => updateShortBreakMinutes(e.target.value)}
       />
@@ -276,7 +291,7 @@
         type="number"
         min="1"
         max="120"
-        bindvalue={longBreakMinutes}
+        bind:value={longBreakMinutes}
         placeholder="25"
         onchange={(e) => updateLongBreakMinutes(e.target.value)}
       />
@@ -374,6 +389,50 @@
     font-family: inherit;
     font-variant-numeric: tabular-nums;
   }
+
+  .auto-advance-toggle {
+    display: flex;
+    justify-content: center;
+  }
+
+  .toggle-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--control-text);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .toggle-btn:hover {
+    background: rgba(148, 163, 184, 0.10);
+  }
+
+  .toggle-btn.manual-mode {
+    background: transparent;
+    color: var(--control-text);
+    border-color: var(--border);
+  }
+
+  .toggle-btn.manual-mode:hover {
+    background: rgba(148, 163, 184, 0.10);
+  }
+
+  .toggle-btn.auto-mode {
+    background: transparent;
+    color: var(--control-text);
+    border-color: var(--border);
+  }
+
+  .toggle-btn.auto-mode:hover {
+    color: var(--text);
+    background: rgba(148, 163, 184, 0.10);
+  }
+
 
   /* 설정 */
   .settings {
