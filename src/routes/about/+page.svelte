@@ -1,7 +1,7 @@
 <svelte:options runes />
 
 <script>
-  let version = $state('v1.1.0');
+  let version = $state('v1.2.0');
   let features = $state([
     '타이머, 스톱워치, 뽀모도로 기능',
     '카운트다운 종료 시 알람',
@@ -10,8 +10,8 @@
     '뽀모도로 자동 / 수동 세트 전환'
   ]);
   let updateLogs = $state([
-    '뽀모도로 타이머 자동 / 수동 세트 넘기기 기능 추가',
-    '뽀모도로 타이머 총 집중 시간 표시 설정',
+    '뽀모도로 타이머 원형 프로그레스 바 생성',
+    '긴 휴식 기본 시간 15분으로 수정'
   ])
 </script>
 

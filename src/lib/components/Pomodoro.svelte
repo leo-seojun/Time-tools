@@ -4,64 +4,82 @@
   // 모드: focus(집중), short-break(짧은 휴식), long-break(긴 휴식), idle
   let mode = $state('idle');
   let completedFocusCount = $state(0);
-  let remainingMs = $state(25 * 60 * 1000);
+
   let focusMinutes = $state(25);
   let shortBreakMinutes = $state(5);
-  let longBreakMinutes = $state(25);
+  let longBreakMinutes = $state(15);
+
+  let remainingMs = $state(25 * 60 * 1000);
   let running = $state(false);
+
   let lastTick = 0;
   let intervalId = null;
   let audioContext = null;
-  
-  // 🔥 수정: 상태로 직접 관리
+
+  // 🔥 원을 더 크게
+  const RADIUS = 62;
+  const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+  // 진행 원 dashoffset (0이면 꽉 찬 상태, CIRCUMFERENCE면 비어있는 상태)
+  let progressDashoffset = $state(CIRCUMFERENCE);
+
   let currentSessionStartTime = $state(0);
   let totalFocusTimeMs = $state(0);
 
   let autoAdvance = $state(true);
 
-  // 🔥 1️⃣ 계산 로직을 별도 함수로 분리
+  function getCurrentTotalMs() {
+    if (mode === 'focus') return focusMinutes * 60 * 1000;
+    if (mode === 'short-break') return shortBreakMinutes * 60 * 1000;
+    if (mode === 'long-break') return longBreakMinutes * 60 * 1000;
+    return focusMinutes * 60 * 1000; // idle도 현재 focusMinutes 기준으로
+  }
+
+  // ✅ 진행 계산은 여기 1곳에서만 - 12시에서 시계방향 채워짐
+  $effect(() => {
+    const totalMs = getCurrentTotalMs();
+    if (!totalMs) return;
+
+    // progress: 0 → 1 (채워지는 방향)
+    const progressRatio = Math.max(0, Math.min(1, (getCurrentTotalMs() - remainingMs) / totalMs));
+    // 12시 시작점에서 시계방향으로 진행: CIRCUMFERENCE → 0
+    progressDashoffset = CIRCUMFERENCE * (1 - progressRatio);
+  });
+
   function calculateTotalFocusTime() {
     const completedTime = completedFocusCount * focusMinutes * 60 * 1000;
     let currentTime = 0;
-    
+
     if (mode === 'focus' && currentSessionStartTime > 0) {
       currentTime = Date.now() - currentSessionStartTime;
       const maxSession = focusMinutes * 60 * 1000;
       currentTime = Math.min(currentTime, maxSession);
     }
-    
+
     return completedTime + currentTime;
   }
 
-  // 🔥 2️⃣ 두 개의 $effect로 분리
-  // A) 타이머 동작 시 실시간 업데이트
   $effect(() => {
-    const unsubs = [mode, running, currentSessionStartTime];
-    
     if (typeof window === 'undefined') return;
-    
+
     let rafId = 0;
     function update() {
       totalFocusTimeMs = calculateTotalFocusTime();
       rafId = requestAnimationFrame(update);
     }
-    
-    if (running && mode === 'focus') {
-      update();
-    }
-    
+
+    if (running && mode === 'focus') update();
+
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
     };
   });
 
-  // B) 완료된 세트 변화 시 즉시 반영
+  // 완료된 세트/설정 변경 시 즉시 반영
   $effect(() => {
-    const unsubs = [completedFocusCount, focusMinutes];
     totalFocusTimeMs = calculateTotalFocusTime();
   });
 
-  // ms → HH:MM:SS 형식
   function formatTime(ms) {
     const totalSeconds = Math.max(0, Math.floor(ms / 1000));
     const h = Math.floor(totalSeconds / 3600);
@@ -88,17 +106,15 @@
     remainingMs = minutes * 60 * 1000;
   }
 
-  // 🔥 개선된 startTimer(): 정지/재시작 완벽 지원
   function startTimer() {
     if (running) return;
 
     if (mode === 'idle') {
       mode = 'focus';
       setRemainingFromMinutes(focusMinutes);
-      currentSessionStartTime = Date.now(); // 새 세션 시작
+      currentSessionStartTime = Date.now();
     }
 
-    // focus 재시작: 이전 시작시간 유지 (누적 계산)
     if (mode === 'focus' && currentSessionStartTime === 0) {
       currentSessionStartTime = Date.now();
     }
@@ -110,11 +126,9 @@
       const now = performance.now();
       const delta = now - lastTick;
       lastTick = now;
-      remainingMs = Math.max(0, remainingMs - delta);
 
-      if (remainingMs <= 0) {
-        handlePhaseEnd();
-      }
+      remainingMs = Math.max(0, remainingMs - delta);
+      if (remainingMs <= 0) handlePhaseEnd();
     }, 50);
   }
 
@@ -123,43 +137,34 @@
     const h = Math.floor(totalSeconds / 3600);
     const m = Math.floor((totalSeconds % 3600) / 60);
     const s = totalSeconds % 60;
-    if (h > 0) {
-      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    }
+    if (h > 0) return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
-  // 🔥 수정된 stopTimer(): 총 집중 시간 유지!
   function stopTimer() {
     running = false;
     if (intervalId) {
       clearInterval(intervalId);
       intervalId = null;
     }
-    // totalFocusTimeMs는 $effect에서 자동 유지됨!
   }
 
-  // 🔥 완전 초기화만 resetTimer에서
   function resetTimer() {
     stopTimer();
     currentSessionStartTime = 0;
     totalFocusTimeMs = 0;
-    completedFocusCount = 0; // 세트 카운트도 리셋
-    
+    completedFocusCount = 0;
+
     mode = 'idle';
     setRemainingFromMinutes(focusMinutes);
   }
 
-  // 🔥 4️⃣ handlePhaseEnd 수정: 완료 시 즉시 업데이트
   function handlePhaseEnd() {
     stopTimer();
     playAlarm();
 
     if (mode === 'focus') {
       completedFocusCount++;
-      console.log('집중 완료! 세트:', completedFocusCount);
-      
-      // 🔥 완료 즉시 총시간 갱신
       totalFocusTimeMs = completedFocusCount * focusMinutes * 60 * 1000;
       currentSessionStartTime = 0;
 
@@ -175,9 +180,7 @@
       setRemainingFromMinutes(focusMinutes);
     }
 
-    if (autoAdvance) {
-      startTimer();
-    }
+    if (autoAdvance) startTimer();
   }
 
   function startFocus() {
@@ -200,44 +203,35 @@
 
   function updateFocusMinutes(value) {
     focusMinutes = Number(value) || 25;
-    if ((mode === 'focus' || mode === 'idle') && !running) {
-      setRemainingFromMinutes(focusMinutes);
-    }
+    if ((mode === 'focus' || mode === 'idle') && !running) setRemainingFromMinutes(focusMinutes);
   }
 
   function updateShortBreakMinutes(value) {
     shortBreakMinutes = Number(value) || 5;
-    if (mode === 'short-break' && !running) {
-      setRemainingFromMinutes(shortBreakMinutes);
-    }
+    if (mode === 'short-break' && !running) setRemainingFromMinutes(shortBreakMinutes);
   }
 
   function updateLongBreakMinutes(value) {
     longBreakMinutes = Number(value) || 25;
-    if (mode === 'long-break' && !running) {
-      setRemainingFromMinutes(longBreakMinutes);
-    }
+    if (mode === 'long-break' && !running) setRemainingFromMinutes(longBreakMinutes);
   }
 
   function playAlarm() {
-    if (!audioContext) {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    }
+    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-    // 꽤 잘 들리는 3음 멜로디 (최대 볼륨에 가깝게)
     const notes = [
-      { freq: 523.25, duration: 0.2 },  
-      { freq: 659.25, duration: 0.2 },  
-      { freq: 783.99, duration: 0.4 },  
-      { freq: 0, duration: 0.3},
-      { freq: 523.25, duration: 0.2 },  
-      { freq: 659.25, duration: 0.2 },  
-      { freq: 783.99, duration: 0.4 },  
-      { freq: 0, duration: 0.3},
-      { freq: 523.25, duration: 0.2 },  
-      { freq: 659.25, duration: 0.2 },  
-      { freq: 783.99, duration: 0.4 },  
-      { freq: 0, duration: 0.3},
+      { freq: 523.25, duration: 0.2 },
+      { freq: 659.25, duration: 0.2 },
+      { freq: 783.99, duration: 0.4 },
+      { freq: 0, duration: 0.3 },
+      { freq: 523.25, duration: 0.2 },
+      { freq: 659.25, duration: 0.2 },
+      { freq: 783.99, duration: 0.4 },
+      { freq: 0, duration: 0.3 },
+      { freq: 523.25, duration: 0.2 },
+      { freq: 659.25, duration: 0.2 },
+      { freq: 783.99, duration: 0.4 },
+      { freq: 0, duration: 0.3 }
     ];
 
     let time = audioContext.currentTime;
@@ -252,7 +246,6 @@
       oscillator.frequency.value = note.freq;
       oscillator.type = 'sine';
 
-      // ★ 볼륨: 0.8 (상당히 크게)
       gainNode.gain.setValueAtTime(0.5, time);
       gainNode.gain.exponentialRampToValueAtTime(0.01, time + note.duration);
 
@@ -261,13 +254,9 @@
       time += note.duration;
     });
 
-    // 진동 (모바일 지원 시)
-    if ('vibrate' in navigator) {
-      navigator.vibrate([200, 100, 200, 100, 300]);
-    }
+    if ('vibrate' in navigator) navigator.vibrate([200, 100, 200, 100, 300]);
   }
 
-  // 클린업
   $effect(() => {
     return () => stopTimer();
   });
@@ -288,64 +277,66 @@
   </div>
 
   <div class="main-display">
-    <h2>{formattedTime()}</h2>
+    <div class="timer-circle">
+      <svg class="progress-ring" viewBox="0 0 140 140" aria-hidden="true">
+        <!-- 배경 원 -->
+        <circle
+          class="progress-ring-bg"
+          cx="70" cy="70" r={RADIUS}
+          stroke-width="10"
+          fill="transparent"
+          stroke-dasharray={CIRCUMFERENCE}
+          stroke-dashoffset="0"
+        />
+        <!-- 진행 원 - 12시에서 시계방향으로 채워짐 -->
+        <circle
+          class="progress-ring-progress"
+          cx="70" cy="70" r={RADIUS}
+          stroke-width="10"
+          fill="transparent"
+          stroke-dasharray={CIRCUMFERENCE}
+          stroke-dashoffset={progressDashoffset}
+        />
+      </svg>
+
+      <h2 class="timer-text">{formattedTime()}</h2>
+    </div>
   </div>
 
   <div class="auto-advance-toggle">
-    <button 
+    <button
       class="toggle-btn {autoAdvance ? 'manual-mode' : 'auto-mode'}"
-      onclick={() => autoAdvance = !autoAdvance}
+      onclick={() => (autoAdvance = !autoAdvance)}
     >
       {autoAdvance ? '수동으로 세트 넘기기' : '자동으로 세트 넘기기'}
     </button>
   </div>
+
   <!-- svelte-ignore a11y_label_has_associated_control -->
   <div class="settings">
     <div class="setting-group">
       <label>집중 시간 (분)</label>
-      <input
-        type="number"
-        min="1"
-        max="180"
-        bind:value={focusMinutes}
-        placeholder="25"
-        onchange={(e) => updateFocusMinutes(e.target.value)}
-      />
+      <input type="number" min="1" max="180" bind:value={focusMinutes} placeholder="25"
+        onchange={(e) => updateFocusMinutes(e.target.value)} />
     </div>
+
     <div class="setting-group">
       <label>짧은 휴식 (분)</label>
-      <input
-        type="number"
-        min="1"
-        max="60"
-        bind:value={shortBreakMinutes}
-        placeholder="5"
-        onchange={(e) => updateShortBreakMinutes(e.target.value)}
-      />
+      <input type="number" min="1" max="60" bind:value={shortBreakMinutes} placeholder="5"
+        onchange={(e) => updateShortBreakMinutes(e.target.value)} />
     </div>
+
     <div class="setting-group">
       <label>긴 휴식 (분)</label>
-      <input
-        type="number"
-        min="1"
-        max="120"
-        bind:value={longBreakMinutes}
-        placeholder="25"
-        onchange={(e) => updateLongBreakMinutes(e.target.value)}
-      />
+      <input type="number" min="1" max="120" bind:value={longBreakMinutes} placeholder="25"
+        onchange={(e) => updateLongBreakMinutes(e.target.value)} />
     </div>
   </div>
 
   <div class="main-buttons">
-    <button onclick={startFocus} disabled={running && mode === 'focus'}>
-      집중 시작
-    </button>
-    <button onclick={startShortBreak} disabled={running && mode === 'short-break'}>
-      짧은 휴식
-    </button>
-    <button onclick={startLongBreak} disabled={running && mode === 'long-break'}>
-      긴 휴식
-    </button>
+    <button onclick={startFocus} disabled={running && mode === 'focus'}>집중 시작</button>
+    <button onclick={startShortBreak} disabled={running && mode === 'short-break'}>짧은 휴식</button>
+    <button onclick={startLongBreak} disabled={running && mode === 'long-break'}>긴 휴식</button>
   </div>
 
   <div class="controls">
@@ -363,7 +354,7 @@
     align-items: center;
 
     max-width: 760px;
-    margin: -24px auto;
+    margin: -24px auto 20px;
     padding: 20px;
 
     background: var(--surface);
@@ -377,7 +368,6 @@
     transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   }
 
-  /* 상태 영역 */
   .status {
     display: flex;
     flex-direction: column;
@@ -425,24 +415,53 @@
     border: 1px solid rgba(37, 99, 235, 0.2);
   }
 
-
-  /* 타이머 표시 */
   .main-display {
     width: 100%;
     display: flex;
     justify-content: center;
     padding: 8px 0;
+    position: relative;
   }
 
-  .main-display h2 {
+  .timer-circle {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .timer-text {
+    position: absolute;
     margin: 0;
-    font-size: 56px;
+    font-size: 40px;
     line-height: 1.05;
     font-weight: 750;
     letter-spacing: 0.01em;
-
     font-family: inherit;
     font-variant-numeric: tabular-nums;
+    z-index: 2;
+    color: var(--text);
+  }
+
+  .progress-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg); /* 12시방향 시작점 */
+    transform-origin: 50% 50%;
+  }
+
+  .progress-ring-bg {
+    stroke: var(--border);
+    opacity: 0.35;
+  }
+
+  .progress-ring-progress {
+    stroke: var(--primary);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke-dashoffset 0.08s linear !important;
   }
 
   .auto-advance-toggle {
@@ -467,29 +486,6 @@
     background: rgba(148, 163, 184, 0.10);
   }
 
-  .toggle-btn.manual-mode {
-    background: transparent;
-    color: var(--control-text);
-    border-color: var(--border);
-  }
-
-  .toggle-btn.manual-mode:hover {
-    background: rgba(148, 163, 184, 0.10);
-  }
-
-  .toggle-btn.auto-mode {
-    background: transparent;
-    color: var(--control-text);
-    border-color: var(--border);
-  }
-
-  .toggle-btn.auto-mode:hover {
-    color: var(--text);
-    background: rgba(148, 163, 184, 0.10);
-  }
-
-
-  /* 설정 */
   .settings {
     display: flex;
     flex-wrap: wrap;
@@ -534,7 +530,6 @@
     box-shadow: 0 0 0 4px var(--ring);
   }
 
-  /* 버튼 그룹 */
   .main-buttons,
   .controls {
     display: flex;
@@ -543,7 +538,6 @@
     justify-content: center;
   }
 
-  /* 버튼 기본(controls = primary) */
   button {
     padding: 10px 14px;
     border-radius: 10px;
@@ -574,7 +568,6 @@
     cursor: not-allowed;
   }
 
-  /* 모드 선택 버튼(main-buttons)은 아웃라인으로 (더 심플) */
   .main-buttons button {
     background: transparent;
     color: var(--text);
@@ -585,75 +578,75 @@
     background: rgba(148, 163, 184, 0.10);
   }
 
-  /* 모바일 반응형 */
-@media (max-width: 480px) {
-  .container {
-    margin: 0 auto; /* 모바일에서 위로 당기는 -24px 완화 */
-    padding: 14px;
-    gap: 12px;
-  }
+  @media (max-width: 480px) {
+    .container {
+      margin: 0 auto;
+      padding: 14px;
+      gap: 12px;
+    }
 
-  .main-display h2 {
-    font-size: 44px;
-  }
+    .timer-circle {
+      width: 220px;
+      height: 220px;
+    }
 
-  /* 1) 설정: 3개 인풋을 가로로 */
-  .settings {
-    width: 100%;
-    flex-wrap: nowrap;       /* 한 줄 유지 */
-    gap: 8px;
-    justify-content: space-between;
-  }
+    .timer-text {
+      font-size: 32px;
+    }
 
-  .setting-group {
-    flex: 1 1 0;             /* 3등분 */
-    min-width: 0;            /* 넘침 방지 */
-    padding: 8px 8px;
-  }
+    .settings {
+      width: 100%;
+      flex-wrap: nowrap;
+      gap: 8px;
+      justify-content: space-between;
+    }
 
-  .setting-group input {
-    width: 80%;             /* 그룹 폭에 맞춤 */
-    padding: 9px 8px;
-  }
+    .setting-group {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 8px 8px;
+    }
 
-  .setting-group label {
-    font-size: 11px;
-    line-height: 1.2;
-    white-space: nowrap;     /* 라벨이 길면 잘릴 수 있어요 */
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+    .setting-group input {
+      width: 80%;
+      padding: 9px 8px;
+    }
 
-  /* 2) 모드 선택 버튼: 3개 가로로 */
-  .main-buttons {
-    width: 100%;
-    flex-wrap: nowrap;
-    gap: 8px;
-  }
+    .setting-group label {
+      font-size: 11px;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-  .main-buttons button {
-    flex: 1 1 0;
-    min-width: 0;
-    padding: 10px 8px;
-    font-size: 13px;
-    white-space: nowrap;
-  }
+    .main-buttons {
+      width: 100%;
+      flex-wrap: nowrap;
+      gap: 8px;
+    }
 
-  /* 3) 재생/일시정지/초기화: 3개 가로로 */
-  .controls {
-    width: 100%;
-    flex-wrap: nowrap;
-    gap: 8px;
-  }
+    .main-buttons button {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 10px 8px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
 
-  .controls button {
-    flex: 1 1 0;
-    max-width: 60px;
-    min-height: 40px;
-    padding: 6px 10px;
-    font-size: 14px;
-    white-space: nowrap;
-  }
-}
+    .controls {
+      width: 100%;
+      flex-wrap: nowrap;
+      gap: 8px;
+    }
 
+    .controls button {
+      flex: 1 1 0;
+      max-width: 60px;
+      min-height: 40px;
+      padding: 6px 10px;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+  }
 </style>
