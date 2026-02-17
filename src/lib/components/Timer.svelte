@@ -32,7 +32,6 @@
   function start() {
     if (running) return;
     running = true;
-    elapsedMs = 0;
     lastTick = performance.now();
     intervalId = setInterval(() => {
       const now = performance.now();
@@ -101,8 +100,40 @@
   function handleKeydown(event) {
     if (event.key === 'Enter') {
       setFromInputs();
+    } else if (event.key ===' ') {
+      event.preventDefault()
+      if (running) {
+        stop()
+      } else {
+        start()
+      }
     }
   }
+
+  $effect(() => {
+    const handleGlobalKeydown = (event) => {
+      // 입력 필드에 포커스가 있을 때는 입력 처리만
+      if (event.target.tagName === 'INPUT') {
+        handleKeydown(event);
+        return;
+      }
+      
+      // 다른 곳에 포커스가 있을 때 스페이스바로 토글
+      if (event.key === ' ') {
+        event.preventDefault();
+        if (running) {
+          stop();
+        } else {
+          start();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeydown);
+    return () => window.removeEventListener('keydown', handleGlobalKeydown);
+  });
+
+  
 
   function playAlarm() {
     if (!audioContext) {

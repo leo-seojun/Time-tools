@@ -216,6 +216,28 @@
     if (mode === 'long-break' && !running) setRemainingFromMinutes(longBreakMinutes);
   }
 
+   function handleKeydown(event) {
+    if (event.key === ' ') {
+      event.preventDefault();
+      if (running) {
+        stopTimer();
+      } else {
+        startTimer();
+      }
+    }
+  }
+
+  $effect(() => {
+    const handleGlobalKeydown = (event) => {
+      if (event.target.tagName === 'INPUT') return;
+      
+      handleKeydown(event);
+    };
+
+    window.addEventListener('keydown', handleGlobalKeydown);
+    return () => window.removeEventListener('keydown', handleGlobalKeydown);
+  });
+
   function playAlarm() {
     if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
 

@@ -48,6 +48,29 @@
     laps = []; // 랩타임도 같이 초기화
   }
 
+  function handleKeydown(event) {
+    if (event.key === ' ') {
+      event.preventDefault();
+      if (running) {
+        stop();
+      } else {
+        start();
+      }
+    } else if (event.key === 'Enter') {
+      event.preventDefault()
+      addLap()
+    }
+  }
+
+  $effect(() => {
+    const handleGlobalKeydown = (event) => {
+      handleKeydown(event);
+    };
+
+    window.addEventListener('keydown', handleGlobalKeydown);
+    return () => window.removeEventListener('keydown', handleGlobalKeydown);
+  });
+
   // 경과 시간 포맷 (HH:MM:SS.ss)
   function formatElapsed(ms = elapsedMs) {
     const totalSeconds = ms / 1000;
