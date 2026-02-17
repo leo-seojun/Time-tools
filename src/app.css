@@ -145,3 +145,9 @@ html.dark,  html.dark  body { background: var(--bg); color: var(--text); }
 .nav-links a[aria-current="page"] {
   background-color: rgba(255, 255, 255, 0.1);
 }
+
+/* @media (max-width: 480px) {
+  .logo {
+    font-size: 8px;
+  }
+} */

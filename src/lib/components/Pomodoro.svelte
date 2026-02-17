@@ -305,7 +305,7 @@
 
   <div class="auto-advance-toggle">
     <button
-      class="toggle-btn {autoAdvance ? 'manual-mode' : 'auto-mode'}"
+      class="toggle-btn"
       onclick={() => (autoAdvance = !autoAdvance)}
     >
       {autoAdvance ? '수동으로 세트 넘기기' : '자동으로 세트 넘기기'}
@@ -473,8 +473,8 @@
     padding: 8px 16px;
     border-radius: 8px;
     border: 1px solid var(--border);
-    background: transparent;
-    color: var(--control-text);
+    background: var(--primary);
+    color: var(--btn-text);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -483,7 +483,7 @@
   }
 
   .toggle-btn:hover {
-    background: rgba(148, 163, 184, 0.10);
+    background: var(--hover);
   }
 
   .settings {
