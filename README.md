@@ -28,7 +28,7 @@
 - Language: JavaScript
 - Build Tool: Vite
 - 스타일: CSS (`app.css` 커스텀 스타일)
-- AI: sperplaxity pro
+- AI: Perplaxity pro
 
 ## 웹사이트 바로가기
 

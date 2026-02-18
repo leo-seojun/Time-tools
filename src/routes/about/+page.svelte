@@ -1,6 +1,8 @@
 <svelte:options runes />
 
 <script>
+  import Icon from "@iconify/svelte";
+
   let version = $state('v1.2.0');
   let features = $state([
     '타이머, 스톱워치, 뽀모도로 기능',
@@ -8,11 +10,13 @@
     '다크 모드, 라이트 모드 지원',
     '스톱워치 랩 타임 무제한 기록',
     '뽀모도로 자동 / 수동 세트 전환',
-    '정확한 현재 시간 확인'
+    '정확한 현재 시각 확인'
   ]);
   let updateLogs = $state([
-    '뽀모도로 타이머 원형 프로그레스 바 생성',
-    '긴 휴식 기본 시간 15분으로 수정'
+    "'현재 시각' 페이지 추가",
+    '다크 / 라이트 모드 토글 버튼 아이콘으로 변경',
+    '스페이스바로 시작 / 정지 기능 추가',
+    '뽀모도로  원형 프로그레스 바 추가'
   ])
 </script>
 
@@ -21,8 +25,19 @@
 </svelte:head>
 
 <div class="about-container">
-  <!-- 뽀모도로 타이머 설명 섹션 -->
   <h2>Time Tools</h2>
+
+  <!-- 특징 -->
+  <section class="features">
+    <h2>주요 기능</h2>
+    <ul>
+      {#each features as feature}
+        <li>{feature}</li>
+      {/each}
+    </ul>
+  </section>
+
+  <!-- 뽀모도로 타이머 설명 섹션 -->
   <section class="pomodoro-intro">
     <h2>뽀모도로 기법 (Pomodoro Technique)</h2>
     <div class="intro-content">
@@ -38,16 +53,6 @@
         </div>
       </div>
     </div>
-  </section>
-
-  <!-- 특징 -->
-  <section class="features">
-    <h2>주요 기능</h2>
-    <ul>
-      {#each features as feature}
-        <li>{feature}</li>
-      {/each}
-    </ul>
   </section>
 
   <!-- 업데이트 로그 -->
@@ -76,7 +81,15 @@
       </div>
       <div class="footer-legal">
         <p>Email: leosj2011@gmail.com</p>
-        <p class="contact">Using Sveltekit, Svelte 5</p>
+        <div class="icon-link">
+          <a href="https://github.com/leo-seojun" target="_blank" rel="noopener noreferrer">
+            <Icon icon="mdi:github" width="24" height="24" />
+          </a>
+          <a href="https://svelte.dev/" target="_blank" rel="noopener noreferrer">
+            <Icon icon="ri:svelte-line" class="icon" width="24" height="24" />
+          </a>
+        </div>
+        <p class="contact">Using Sveltekit, Perplaxity</p>
       </div>
     </div>
   </footer>
@@ -240,6 +253,16 @@
     font-size: clamp(12px, 2.5vw, 14px);
   }
 
+  .icon-link {
+    margin: 10px 0 5px;
+  }
+
+  .icon-link a {
+    text-decoration: none;
+    color: var(--muted);
+    padding: 10px;
+  }
+
   .version-highlight {
     color: var(--primary);
     font-weight: 600;
@@ -268,6 +291,10 @@
 
     .footer {
       padding: 16px 40px 10px;
+    }
+
+    .icon-link a {
+      font-size: 0.5rem;
     }
   }
 </style>
