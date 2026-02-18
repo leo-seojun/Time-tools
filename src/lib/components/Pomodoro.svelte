@@ -1,6 +1,8 @@
 <svelte:options runes />
 
 <script>
+  import Icon from "@iconify/svelte";
+
   // 모드: focus(집중), short-break(짧은 휴식), long-break(긴 휴식), idle
   let mode = $state('idle');
   let completedFocusCount = $state(0);
@@ -324,11 +326,13 @@
   </div>
 
   <div class="auto-advance-toggle">
-    <button
-      class="toggle-btn"
-      onclick={() => (autoAdvance = !autoAdvance)}
-    >
-      {autoAdvance ? '수동으로 세트 넘기기' : '자동으로 세트 넘기기'}
+    <button class="toggle-btn" onclick={() => (autoAdvance = !autoAdvance)}>
+       자동 세트 전환
+       <Icon 
+          class='icon'
+          icon={autoAdvance ? 'material-symbols:check-box' : 'material-symbols:check-box-outline-blank'}
+          width='20' height='20'
+        />
     </button>
   </div>
 
@@ -490,6 +494,9 @@
   }
 
   .toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     padding: 8px 16px;
     border-radius: 8px;
     border: 1px solid var(--border);
@@ -612,6 +619,12 @@
 
     .timer-text {
       font-size: 32px;
+    }
+
+     .toggle-btn {
+      font-size: 13px;
+      padding: 8px 12px;
+      gap: 4px;
     }
 
     .settings {

@@ -166,7 +166,7 @@
     height: 48px;
     border-radius: 50%;
     border: 2px solid var(--border);
-    background: var(--surface-2);
+    background: transparent;
     backdrop-filter: blur(20px);
     cursor: pointer;
     display: flex;
@@ -178,7 +178,7 @@
   }
 
   .theme-btn:hover {
-    transform: scale(1.05) rotate(180deg);
+    transform: scale(1.05) rotate(360deg);
     /* border-color: var(--primary); */
     box-shadow: 0 8px 32px rgba(37, 99, 235, 0.2);
     background: var(--hover);
