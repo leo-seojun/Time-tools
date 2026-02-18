@@ -1,4 +1,5 @@
 <script>
+	import { title } from 'process';
   import '../../app.css'
 
   let now = $state(new Date());
@@ -102,6 +103,10 @@
     return `${year}.${month}.${day} ${weekday}`;
   }
 </script>
+
+<svelte:head>
+  <title>현재 시각 · Time Tools</title>
+</svelte:head>
 
 <div class="clock-container">
   <div class="top-row">

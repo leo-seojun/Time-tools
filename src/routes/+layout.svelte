@@ -2,13 +2,14 @@
 
 <script>
   import '../app.css';
-  import { slide } from 'svelte/transition';
+  import { slide, fade, scale } from 'svelte/transition';
   import { page } from '$app/state';
-  import { onMount } from 'svelte';
-  import Icon from '@iconify/svelte'
+  import { onMount, tick } from 'svelte';
+  import Icon from '@iconify/svelte';
 
   const currentPath = $derived(page.url.pathname);
   let darkMode = $state(false);
+  let pageTransition = $state(slide);
 
   onMount(() => {
     darkMode = document.documentElement.classList.contains('dark');
@@ -18,7 +19,6 @@
     darkMode = isDark;
     const theme = isDark ? 'dark' : 'light';
     localStorage.setItem('theme', theme);
-
     const root = document.documentElement;
     root.classList.remove('dark', 'light');
     root.classList.add(theme);
@@ -31,39 +31,43 @@
 
   const theme = $derived(darkMode ? 'dark' : 'light');
 
-  function noop() {
-    return { duration: 0 };
-  }
-
-  let pageTransition = $state(noop);
-
-  onMount(() => {
-    pageTransition = (node) => slide(node, { duration: 250, x: 50 });
+  // 👇 2. 네비 active 클래스 동적 업데이트
+  $effect(() => {
+    // 클래스 전환 애니메이션
+    tick().then(() => {
+      document.querySelectorAll('.nav-item').forEach(link => {
+        link.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+      });
+    });
   });
 </script>
 
 <div class="app-root {theme}">
   <nav class="main-nav">
-    <!-- 로고: 왼쪽 -->
-    <a href="/" class="logo active:{currentPath === '/'}">
+    <a href="/" class="logo">
       <img src="/logo.png" alt="logo"> Time Tools
     </a>
 
-    <!-- 버튼들: 가운데 -->
     <div class="nav-links">
-      <a href="/timer" class:active={currentPath === '/timer'}>타이머</a>
-      <a href="/stopwatch" class:active={currentPath === '/stopwatch'}>스톱워치</a>
-      <a href="/pomodoro" class:active={currentPath === '/pomodoro'}>뽀모도로</a>
-      <a href="/clock" class:active={currentPath === '/clock'}>현재 시각</a>
+      <a href="/timer" class="nav-item {currentPath === '/timer' ? 'active' : ''}">
+        타이머
+      </a>
+      <a href="/stopwatch" class="nav-item {currentPath === '/stopwatch' ? 'active' : ''}">
+        스톱워치
+      </a>
+      <a href="/pomodoro" class="nav-item {currentPath === '/pomodoro' ? 'active' : ''}">
+        뽀모도로
+      </a>
+      <a href="/clock" class="nav-item {currentPath === '/clock' ? 'active' : ''}">
+        현재 시각
+      </a>
     </div>
 
-    <!-- 오른쪽 공간 균형 -->
     <div class="spacer"></div>
   </nav>
 
   <div class="theme-toggle">
-    <!-- svelte-ignore event_directive_deprecated -->
-    <button type="button" on:click={toggleTheme} class="theme-btn">
+    <button type="button" onclick={toggleTheme} class="theme-btn">
       <Icon
         icon={darkMode ? 'material-symbols:light-mode-rounded' : 'material-symbols:dark-mode-rounded'}
         width="24" height="24"
@@ -73,17 +77,16 @@
 
   <div class="about">
     <a href="/about">
-      <button>About</button>
+      <button class="about-btn">About</button>
     </a>
   </div>
 
-  <!-- svelte-ignore slot_element_deprecated -->
-  <div
-    class="page-content"
-    transition:{pageTransition}
-  >
-    <slot />
-  </div>
+  {#key currentPath}
+    <!-- svelte-ignore slot_element_deprecated -->
+    <div class="page-content" in:slide={pageTransition} out:fade={{ duration: 100 }}>
+      <slot />
+    </div>
+  {/key}
 </div>
 
 <style>

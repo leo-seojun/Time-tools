@@ -16,7 +16,6 @@
   let intervalId = null;
   let audioContext = null;
 
-  // 🔥 원을 더 크게
   const RADIUS = 62;
   const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
@@ -35,7 +34,6 @@
     return focusMinutes * 60 * 1000; // idle도 현재 focusMinutes 기준으로
   }
 
-  // ✅ 진행 계산은 여기 1곳에서만 - 12시에서 시계방향 채워짐
   $effect(() => {
     const totalMs = getCurrentTotalMs();
     if (!totalMs) return;
