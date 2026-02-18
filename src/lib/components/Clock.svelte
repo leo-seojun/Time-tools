@@ -1,71 +1,27 @@
 <script>
-	import { title } from 'process';
-  import '../../app.css'
+    let title = $state('현재 시각');
+  import '../../app.css';
 
   let now = $state(new Date());
-  let is24h = $state(true); // true: 24h, false: 12h
-
-  // 네이버 서버 시간 가져오기
-  async function fetchNaverTime() {
-    try {
-      const response = await fetch(
-        'https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=0&ie=utf8&query=%EC%8B%A4%EC%8B%9C%EA%B0%84'
-      );
-      const html = await response.text();
-
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const timeElement = doc.querySelector('.timeit_txt strong');
-
-      if (timeElement) {
-        const serverTimeStr = timeElement.textContent.trim();
-        const [h, m, s] = serverTimeStr.split(':').map(Number);
-        const today = new Date();
-        const serverTime = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          today.getDate(),
-          h,
-          m,
-          s
-        );
-        now = serverTime;
-        return serverTime;
-      }
-    } catch (error) {
-      console.warn('네이버 시간 가져오기 실패, 로컬 시간 사용:', error);
-    }
-
-    try {
-      const response = await fetch('https://www.naver.com');
-      const dateHeader = response.headers.get('date');
-      if (dateHeader) {
-        const gmtDate = new Date(dateHeader);
-        gmtDate.setHours(gmtDate.getHours() + 9);
-        now = gmtDate;
-        return gmtDate;
-      }
-    } catch (error) {
-      console.warn('대체 시간 가져오기 실패:', error);
-    }
-
-    now = new Date();
-    return now;
-  }
+  let is24h = $state(true);
 
   $effect(() => {
-    fetchNaverTime();
+    document.title = title;
   });
 
   $effect(() => {
-    const interval = setInterval(async () => {
-      await fetchNaverTime();
+    now = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Seoul"}));
+  });
+
+  $effect(() => {
+    const interval = setInterval(() => {
+      now = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Seoul"}));
     }, 1000);
 
     return () => clearInterval(interval);
   });
 
-  // 24h 형식: HH:MM:SS
+
   function formatTime24(date) {
     const h = date.getHours().toString().padStart(2, '0');
     const m = date.getMinutes().toString().padStart(2, '0');
@@ -73,34 +29,25 @@
     return `${h}:${m}:${s}`;
   }
 
-  // 12h 형식: 시간만 반환 (period 별도)
   function formatTime12(date) {
     let h = date.getHours();
     const m = date.getMinutes().toString().padStart(2, '0');
     const s = date.getSeconds().toString().padStart(2, '0');
     
-    h = h % 12;
-    if (h === 0) h = 12;
-    const hh = h.toString().padStart(2, '0');
-
-    return `${hh}:${m}:${s}`;
+    h = h % 12 || 12;
+    return `${h.toString().padStart(2, '0')}:${m}:${s}`;
   }
 
-  // 오전/오후 텍스트
   function getPeriod(date) {
     return date.getHours() >= 12 ? '오후' : '오전';
   }
 
-  // 날짜 형식: YYYY.MM.DD (요일)
   function formatDate(date) {
     const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
-
     const weekdays = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
-    const weekday = weekdays[date.getDay()];
-
-    return `${year}.${month}.${day} ${weekday}`;
+    return `${year}.${month}.${day} ${weekdays[date.getDay()]}`;
   }
 </script>
 
@@ -131,7 +78,6 @@
     <div class="date-display">
       {formatDate(now)}
     </div>
-    <div class="source">네이버 서버 시간</div>
   </div>
 </div>
 
@@ -227,15 +173,6 @@
     letter-spacing: 0.03em;
   }
 
-  .source {
-    font-size: 12px;
-    font-weight: 400;
-    color: var(--muted);
-    opacity: 0.6;
-    letter-spacing: 0.02em;
-    margin-top: 0.75rem;
-  }
-
   @media (prefers-color-scheme: dark) {
     .time-display {
       text-shadow:
@@ -272,11 +209,6 @@
     .date-display {
       margin-top: 0.3rem;
       font-size: 20px;
-    }
-
-    .source {
-      margin-top: 0.5rem;
-      font-size: 10px;
     }
   }
 </style>

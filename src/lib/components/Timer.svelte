@@ -41,7 +41,7 @@
       if (elapsedMs >= targetMs) {
         elapsedMs = targetMs;
         playAlarm();
-        stop();
+        reset();
       }
     }, 10);
   }
