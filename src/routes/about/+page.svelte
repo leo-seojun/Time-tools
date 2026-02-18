@@ -19,6 +19,7 @@
     '뽀모도로  원형 프로그레스 바 추가',
     '페이지 트렌지션 적용'
   ])
+  let date = $state('2026.02.18')
 </script>
 
 <svelte:head>
@@ -62,7 +63,7 @@
     <div class="update-list">
       <div class="update-item">
         <span class="version-badge">{version}</span>
-        <span class="date">2026.02.15</span>
+        <span class="date">{date}</span>
         <div class="changes">
           <ul>
             {#each updateLogs as updateLog}
