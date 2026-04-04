@@ -7,7 +7,8 @@
     { href: '/timer', title: '타이머', desc: '시간을 설정하고 카운트다운 해요.' },
     { href: '/stopwatch', title: '스톱워치', desc: '랩 기록과 함께 경과 시간을 측정해요.' },
     { href: '/pomodoro', title: '뽀모도로', desc: '뽀모도로 기법으로 집중력을 높여요.' },
-    { href: './clock', title: '현재 시각', desc: '정확한 현재 시각을 표시해요.'}
+    { href: '/clock', title: '현재 시각', desc: '정확한 현재 시각을 표시해요.'},
+    { href: '/todo', title: '할일 관리', desc: '할일을 등록하고 관리해요.'}
   ];
 </script>
 
@@ -35,6 +36,7 @@
 
 <style>
   .home {
+    display: block;
     max-width: 900px;
     margin: 24px auto;
     padding: 40px 20px;

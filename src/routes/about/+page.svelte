@@ -3,7 +3,7 @@
 <script>
   import Icon from "@iconify/svelte";
 
-  let version = $state('v1.2.1');
+  let version = $state('v1.3.0');
   let features = $state([
     '타이머, 스톱워치, 뽀모도로 기능',
     '카운트다운 종료 시 알람',
@@ -13,12 +13,8 @@
     '정확한 현재 시각 확인'
   ]);
   let updateLogs = $state([
-    "'현재 시각' 페이지 추가",
-    '다크 / 라이트 모드 토글 버튼 아이콘으로 변경',
-    '스페이스바로 시작 / 정지 기능 추가',
-    '뽀모도로  원형 프로그레스 바 추가',
-    '페이지 트렌지션 적용',
-    '현재 시각 에러 수정'
+    '할일 관리 페이지 추가',
+    '모바일 드롭다운 토글버튼 추가'
   ])
   let date = $state('2026.02.18')
 </script>

@@ -24,6 +24,7 @@
   // 진행 원 dashoffset (0이면 꽉 찬 상태, CIRCUMFERENCE면 비어있는 상태)
   let progressDashoffset = $state(CIRCUMFERENCE);
 
+  // 현재 세션 시작 시각, 총 집중 시간(ms)
   let currentSessionStartTime = $state(0);
   let totalFocusTimeMs = $state(0);
 
@@ -36,16 +37,19 @@
     return focusMinutes * 60 * 1000; // idle도 현재 focusMinutes 기준으로
   }
 
+  // 원형 진행바
   $effect(() => {
     const totalMs = getCurrentTotalMs();
     if (!totalMs) return;
 
-    // progress: 0 → 1 (채워지는 방향)
-    const progressRatio = Math.max(0, Math.min(1, (getCurrentTotalMs() - remainingMs) / totalMs));
-    // 12시 시작점에서 시계방향으로 진행: CIRCUMFERENCE → 0
+    const progressRatio = Math.max(
+      0,
+      Math.min(1, (getCurrentTotalMs() - remainingMs) / totalMs)
+    );
     progressDashoffset = CIRCUMFERENCE * (1 - progressRatio);
   });
 
+  // 완료된 세트 * focusMinutes + 현재 세션 경과 시간
   function calculateTotalFocusTime() {
     const completedTime = completedFocusCount * focusMinutes * 60 * 1000;
     let currentTime = 0;
@@ -59,24 +63,26 @@
     return completedTime + currentTime;
   }
 
+  // totalFocusTimeMs 관리 (rAF + 정지 시 한 번만 계산)
   $effect(() => {
     if (typeof window === 'undefined') return;
 
-    let rafId = 0;
-    function update() {
-      totalFocusTimeMs = calculateTotalFocusTime();
-      rafId = requestAnimationFrame(update);
+    if (running && mode === 'focus') {
+      let rafId = 0;
+
+      const update = () => {
+        totalFocusTimeMs = calculateTotalFocusTime();
+        rafId = requestAnimationFrame(update);
+      };
+
+      update();
+
+      return () => {
+        if (rafId) cancelAnimationFrame(rafId);
+      };
     }
 
-    if (running && mode === 'focus') update();
-
-    return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-    };
-  });
-
-  // 완료된 세트/설정 변경 시 즉시 반영
-  $effect(() => {
+    // running 이 아니거나 focus 모드가 아닐 때는 딱 한 번만 계산해서 고정
     totalFocusTimeMs = calculateTotalFocusTime();
   });
 
@@ -137,7 +143,11 @@
     const h = Math.floor(totalSeconds / 3600);
     const m = Math.floor((totalSeconds % 3600) / 60);
     const s = totalSeconds % 60;
-    if (h > 0) return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    if (h > 0)
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(
+        2,
+        '0'
+      )}:${String(s).padStart(2, '0')}`;
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
@@ -146,6 +156,12 @@
     if (intervalId) {
       clearInterval(intervalId);
       intervalId = null;
+    }
+
+    // 현재 세션까지 포함해서 값 고정, 이후로는 증가 X
+    if (mode === 'focus' && currentSessionStartTime > 0) {
+      totalFocusTimeMs = calculateTotalFocusTime();
+      currentSessionStartTime = 0;
     }
   }
 
@@ -203,20 +219,23 @@
 
   function updateFocusMinutes(value) {
     focusMinutes = Number(value) || 25;
-    if ((mode === 'focus' || mode === 'idle') && !running) setRemainingFromMinutes(focusMinutes);
+    if ((mode === 'focus' || mode === 'idle') && !running)
+      setRemainingFromMinutes(focusMinutes);
   }
 
   function updateShortBreakMinutes(value) {
     shortBreakMinutes = Number(value) || 5;
-    if (mode === 'short-break' && !running) setRemainingFromMinutes(shortBreakMinutes);
+    if (mode === 'short-break' && !running)
+      setRemainingFromMinutes(shortBreakMinutes);
   }
 
   function updateLongBreakMinutes(value) {
     longBreakMinutes = Number(value) || 25;
-    if (mode === 'long-break' && !running) setRemainingFromMinutes(longBreakMinutes);
+    if (mode === 'long-break' && !running)
+      setRemainingFromMinutes(longBreakMinutes);
   }
 
-   function handleKeydown(event) {
+  function handleKeydown(event) {
     if (event.key === ' ') {
       event.preventDefault();
       if (running) {
@@ -230,7 +249,6 @@
   $effect(() => {
     const handleGlobalKeydown = (event) => {
       if (event.target.tagName === 'INPUT') return;
-      
       handleKeydown(event);
     };
 
@@ -239,7 +257,9 @@
   });
 
   function playAlarm() {
-    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    if (!audioContext)
+      audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
 
     const notes = [
       { freq: 523.25, duration: 0.2 },
@@ -269,20 +289,26 @@
       oscillator.type = 'sine';
 
       gainNode.gain.setValueAtTime(0.5, time);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, time + note.duration);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        time + note.duration
+      );
 
       oscillator.start(time);
       oscillator.stop(time + note.duration);
       time += note.duration;
     });
 
-    if ('vibrate' in navigator) navigator.vibrate([200, 100, 200, 100, 300]);
+    if ('vibrate' in navigator)
+      navigator.vibrate([200, 100, 200, 100, 300]);
   }
 
+  // 컴포넌트 언마운트 시 타이머 정리
   $effect(() => {
     return () => stopTimer();
   });
 </script>
+
 
 <svelte:head>
   <title>뽀모도로 · Time Tools</title>
@@ -294,9 +320,9 @@
     <span class="sets">완료된 집중 세트: {completedFocusCount}세트</span>
   </div>
 
-  <div class="total-focus-time">
+  <!-- <div class="total-focus-time">
     <span>총 집중 {formatTotalFocusTime(totalFocusTimeMs)}</span>
-  </div>
+  </div> -->
 
   <div class="main-display">
     <div class="timer-circle">
@@ -327,7 +353,7 @@
 
   <div class="auto-advance-toggle">
     <button class="toggle-btn" onclick={() => (autoAdvance = !autoAdvance)}>
-       자동 세트 전환
+       자동으로 세트 넘기기
        <Icon 
           class='icon'
           icon={autoAdvance ? 'material-symbols:check-box' : 'material-symbols:check-box-outline-blank'}
@@ -509,8 +535,19 @@
     white-space: nowrap;
   }
 
+  :global(.toggle-btn .icon) {
+    flex-shrink: 0;
+    filter: brightness(1.1);
+    transition: all .2s ease;
+  }
+
   .toggle-btn:hover {
     background: var(--hover);
+  }
+
+  :global(.toggle-btn:hover .icon) {
+    transform: scale(1.1);
+    filter: brightness(1.3) drop-shadow(0 2px 4px rgba(0,0,0,0.1));
   }
 
   .settings {
@@ -625,6 +662,11 @@
       font-size: 13px;
       padding: 8px 12px;
       gap: 4px;
+    }
+    
+    :global(.toggle-btn .icon) {
+      width: 18px !important;
+      height: 18px !important;
     }
 
     .settings {

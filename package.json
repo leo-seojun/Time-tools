@@ -29,5 +29,8 @@
 		"svelte": "^5.45.6",
 		"vite": "^7.2.6",
 		"vite-plugin-node-polyfills": "^0.25.0"
+	},
+	"dependencies": {
+		"uuid": "^13.0.0"
 	}
 }
